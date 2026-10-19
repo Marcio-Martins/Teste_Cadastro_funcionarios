@@ -1,27 +1,53 @@
 <?php
+session_start();
 require 'config.php';
 
-$busca = isset($_GET['busca']) ? trim($_GET['busca']) : '';
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+function escapar($valor): string
+{
+    return htmlspecialchars((string) $valor, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+$busca = trim((string) ($_GET['busca'] ?? ''));
 $porPagina = 10;
-$paginaAtual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+$paginaAtual = filter_var($_GET['pagina'] ?? 1, FILTER_VALIDATE_INT);
+$paginaAtual = ($paginaAtual !== false && $paginaAtual > 0) ? $paginaAtual : 1;
+$termoBusca = '%' . $busca . '%';
+
+$stmtTotal = $pdo->prepare(
+    'SELECT COUNT(*) FROM funcionarios
+     WHERE nome LIKE :busca_nome OR prontuario LIKE :busca_prontuario'
+);
+$stmtTotal->execute([
+    ':busca_nome' => $termoBusca,
+    ':busca_prontuario' => $termoBusca,
+]);
+$totalFuncionarios = (int) $stmtTotal->fetchColumn();
+$totalPaginas = max(1, (int) ceil($totalFuncionarios / $porPagina));
+$paginaAtual = min($paginaAtual, $totalPaginas);
 $offset = ($paginaAtual - 1) * $porPagina;
 
-$sql = "SELECT * FROM funcionarios WHERE nome LIKE :busca OR prontuario LIKE :busca LIMIT :offset, :porPagina";
-$stmt = $pdo->prepare($sql);
-$stmt->bindParam(':busca', $busca);
-$stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
-$stmt->bindParam(':porPagina', $porPagina, PDO::PARAM_INT);
+$stmt = $pdo->prepare(
+    'SELECT * FROM funcionarios
+     WHERE nome LIKE :busca_nome OR prontuario LIKE :busca_prontuario
+     ORDER BY id DESC
+     LIMIT :offset, :porPagina'
+);
+$stmt->bindValue(':busca_nome', $termoBusca, PDO::PARAM_STR);
+$stmt->bindValue(':busca_prontuario', $termoBusca, PDO::PARAM_STR);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->bindValue(':porPagina', $porPagina, PDO::PARAM_INT);
 $stmt->execute();
-$funcionarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$totalFuncionarios = $pdo->query("SELECT COUNT(*) FROM funcionarios WHERE nome LIKE '%$busca%' OR prontuario LIKE '%$busca%'")->fetchColumn();
-$totalPaginas = ceil($totalFuncionarios / $porPagina);
+$funcionarios = $stmt->fetchAll();
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Listar Funcionários</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -29,45 +55,62 @@ $totalPaginas = ceil($totalFuncionarios / $porPagina);
     <h1>Lista de Funcionários</h1>
 
     <form method="get" action="listar.php">
-        <input type="text" name="busca" placeholder="Buscar por nome ou prontuário">
+        <label for="busca">Buscar por nome ou prontuário</label>
+        <input id="busca" type="text" name="busca" value="<?php echo escapar($busca); ?>"
+               placeholder="Buscar por nome ou prontuário">
         <button type="submit">Buscar</button>
     </form>
 
     <table>
-        <tr>
-            <th>Prontuário</th>
-            <th>Nome</th>
-            <th>Idade</th>
-            <th>Data de Nascimento</th>
-            <th>Data de Admissão</th>
-            <th>Email</th>
-            <th>Telefone</th>
-            <th>Endereço</th>
-            <th>Ações</th>
-        </tr>
+        <thead>
+            <tr>
+                <th>Prontuário</th>
+                <th>Nome</th>
+                <th>Idade</th>
+                <th>Data de Nascimento</th>
+                <th>Data de Admissão</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Endereço</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php if (!$funcionarios): ?>
+            <tr><td colspan="9">Nenhum funcionário encontrado.</td></tr>
+        <?php endif; ?>
         <?php foreach ($funcionarios as $funcionario): ?>
-        <tr>
-            <td><?php echo $funcionario['prontuario']; ?></td>
-            <td><?php echo $funcionario['nome']; ?></td>
-            <td><?php echo $funcionario['idade']; ?></td>
-            <td><?php echo $funcionario['data_nascimento']; ?></td>
-            <td><?php echo $funcionario['data_admissao']; ?></td>
-            <td><?php echo $funcionario['email']; ?></td>
-            <td><?php echo $funcionario['telefone']; ?></td>
-            <td><?php echo $funcionario['endereco']; ?></td>
-            <td>
-                <a href="editar.php?id=<?php echo $funcionario['id']; ?>">Editar</a> |
-                <a href="excluir.php?id=<?php echo $funcionario['id']; ?>" onclick="return confirm('Tem certeza que deseja excluir este funcionário?');">Excluir</a>
-            </td>
-        </tr>
+            <tr>
+                <td><?php echo escapar($funcionario['prontuario']); ?></td>
+                <td><?php echo escapar($funcionario['nome']); ?></td>
+                <td><?php echo escapar($funcionario['idade']); ?></td>
+                <td><?php echo escapar($funcionario['data_nascimento']); ?></td>
+                <td><?php echo escapar($funcionario['data_admissao']); ?></td>
+                <td><?php echo escapar($funcionario['email']); ?></td>
+                <td><?php echo escapar($funcionario['telefone']); ?></td>
+                <td><?php echo escapar($funcionario['endereco']); ?></td>
+                <td>
+                    <a href="editar.php?id=<?php echo (int) $funcionario['id']; ?>">Editar</a>
+                    <form action="excluir.php" method="post"
+                          onsubmit="return confirm('Tem certeza que deseja excluir este funcionário?');">
+                        <input type="hidden" name="id" value="<?php echo (int) $funcionario['id']; ?>">
+                        <input type="hidden" name="csrf_token" value="<?php echo escapar($_SESSION['csrf_token']); ?>">
+                        <button type="submit">Excluir</button>
+                    </form>
+                </td>
+            </tr>
         <?php endforeach; ?>
+        </tbody>
     </table>
 
-    <div class="pagination">
+    <nav class="pagination" aria-label="Paginação">
         <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-            <a href="listar.php?pagina=<?php echo $i; ?>&busca=<?php echo $busca; ?>"><?php echo $i; ?></a>
+            <a href="listar.php?pagina=<?php echo $i; ?>&amp;busca=<?php echo rawurlencode($busca); ?>"
+               <?php echo $i === $paginaAtual ? 'aria-current="page"' : ''; ?>>
+                <?php echo $i; ?>
+            </a>
         <?php endfor; ?>
-    </div>
+    </nav>
 
     <a href="exportar_csv.php" class="button">Exportar para CSV</a>
     <a href="index.php" class="button">Voltar ao Início</a>
