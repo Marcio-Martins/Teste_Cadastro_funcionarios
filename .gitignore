@@ -1,0 +1,13 @@
+# Arquivos locais e segredos
+.env
+.env.*
+!.env.example
+
+# Configurações locais de IDE
+.vscode/
+.idea/
+
+# Logs e arquivos temporários
+*.log
+.DS_Store
+Thumbs.db
