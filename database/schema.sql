@@ -20,3 +20,15 @@ CREATE TABLE IF NOT EXISTS funcionarios (
 ) ENGINE=InnoDB
   DEFAULT CHARACTER SET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    email VARCHAR(254) NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL,
+    ativo TINYINT(1) NOT NULL DEFAULT 1,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_usuarios_email (email)
+) ENGINE=InnoDB
+  DEFAULT CHARACTER SET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
