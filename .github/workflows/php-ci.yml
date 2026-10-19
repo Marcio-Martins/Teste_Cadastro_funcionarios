@@ -12,8 +12,21 @@ permissions:
 
 jobs:
   lint-and-test:
-    name: Validar sintaxe PHP e testes CSV
+    name: Validar sintaxe PHP e testes automatizados
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: cadastro_funcionarios
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     steps:
       - name: Baixar o código
         uses: actions/checkout@v4
@@ -22,6 +35,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
+          extensions: pdo_mysql
           tools: none
           coverage: none
 
@@ -33,5 +47,19 @@ jobs:
             php -l "$file"
           done < <(find funcionarios tests -type f -name '*.php' -print0)
 
+      - name: Preparar esquema MySQL de teste
+        env:
+          MYSQL_PWD: root
+        run: mysql --host=127.0.0.1 --port=3306 --user=root < database/schema.sql
+
       - name: Executar testes da exportação CSV
         run: php tests/test_csv.php
+
+      - name: Executar testes de integração MySQL
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_NAME: cadastro_funcionarios
+          DB_USER: root
+          DB_PASS: root
+        run: php tests/test_mysql_integration.php
