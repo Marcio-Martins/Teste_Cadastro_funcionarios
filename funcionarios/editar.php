@@ -7,6 +7,12 @@ function escapar($valor): string
     return htmlspecialchars((string) $valor, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function dataValida(string $valor): bool
+{
+    $data = DateTime::createFromFormat('!Y-m-d', $valor);
+    return $data !== false && $data->format('Y-m-d') === $valor;
+}
+
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -42,7 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $idade = filter_var($_POST['idade'] ?? null, FILTER_VALIDATE_INT);
     $data_nascimento = (string) ($_POST['data_nascimento'] ?? '');
     $data_admissao = (string) ($_POST['data_admissao'] ?? '');
-    $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
+    $emailEntrada = (string) ($_POST['email'] ?? '');
+    $email = filter_var($emailEntrada, FILTER_VALIDATE_EMAIL);
     $telefoneEntrada = (string) ($_POST['telefone'] ?? '');
     $telefone = preg_match('/^[0-9]{10,11}$/', $telefoneEntrada) ? $telefoneEntrada : false;
     $endereco = trim((string) ($_POST['endereco'] ?? ''));
@@ -51,8 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $prontuario !== '' &&
         $nome !== '' &&
         $idade !== false && $idade !== null && $idade > 0 &&
-        $data_nascimento !== '' &&
-        $data_admissao !== '' &&
+        dataValida($data_nascimento) &&
+        dataValida($data_admissao) &&
         $email !== false &&
         $telefone !== false &&
         $endereco !== ''
@@ -86,8 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'idade' => $idade === false || $idade === null ? '' : $idade,
         'data_nascimento' => $data_nascimento,
         'data_admissao' => $data_admissao,
-        'email' => $email === false ? (string) ($_POST['email'] ?? '') : $email,
-        'telefone' => $telefone === false ? $telefoneEntrada : $telefone,
+        'email' => $emailEntrada,
+        'telefone' => $telefoneEntrada,
         'endereco' => $endereco,
     ]);
 }
