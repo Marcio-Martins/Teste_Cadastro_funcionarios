@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/auth.php';
+exigirLogin();
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/csv_utils.php';
 
