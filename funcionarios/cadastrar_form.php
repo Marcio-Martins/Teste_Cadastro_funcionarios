@@ -1,7 +1,14 @@
+<?php
+session_start();
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Cadastrar Funcionário</title>
     <link rel="stylesheet" href="styles.css">
     <script>
@@ -10,7 +17,7 @@
         const email = document.forms["cadastroForm"]["email"].value;
         const telefone = document.forms["cadastroForm"]["telefone"].value;
 
-        if (prontuario === "") {
+        if (prontuario.trim() === "") {
             alert("Prontuário é obrigatório.");
             return false;
         }
@@ -34,31 +41,33 @@
 <body>
     <h1>Cadastrar Funcionário</h1>
     <form name="cadastroForm" action="cadastrar.php" method="post" onsubmit="return validarFormulario()">
-        <label>Prontuário:</label>
-        <input type="text" name="prontuario" required><br>
-        
-        <label>Nome:</label>
-        <input type="text" name="nome" required><br>
-        
-        <label>Idade:</label>
-        <input type="number" name="idade" required><br>
-        
-        <label>Data de Nascimento:</label>
-        <input type="date" name="data_nascimento" required><br>
-        
-        <label>Data de Admissão:</label>
-        <input type="date" name="data_admissao" required><br>
-        
-        <label>Email:</label>
-        <input type="email" name="email" required><br>
-        
-        <label>Telefone:</label>
-        <input type="text" name="telefone" required><br>
-        
-        <label>Endereço:</label>
-        <input type="text" name="endereco" required><br>
-        
-        <input type="submit" value="Cadastrar">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+
+        <label for="prontuario">Prontuário:</label>
+        <input id="prontuario" type="text" name="prontuario" required><br>
+
+        <label for="nome">Nome:</label>
+        <input id="nome" type="text" name="nome" required><br>
+
+        <label for="idade">Idade:</label>
+        <input id="idade" type="number" name="idade" min="1" required><br>
+
+        <label for="data_nascimento">Data de Nascimento:</label>
+        <input id="data_nascimento" type="date" name="data_nascimento" required><br>
+
+        <label for="data_admissao">Data de Admissão:</label>
+        <input id="data_admissao" type="date" name="data_admissao" required><br>
+
+        <label for="email">Email:</label>
+        <input id="email" type="email" name="email" required><br>
+
+        <label for="telefone">Telefone:</label>
+        <input id="telefone" type="text" name="telefone" pattern="[0-9]{10,11}" required><br>
+
+        <label for="endereco">Endereço:</label>
+        <input id="endereco" type="text" name="endereco" required><br>
+
+        <button type="submit">Cadastrar</button>
     </form>
 
     <a href="index.php">Voltar ao Início</a>
