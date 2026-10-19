@@ -68,14 +68,16 @@ Acesse `http://127.0.0.1:8000` no navegador. A criação do banco e da tabela ai
 - Valores exibidos em HTML devem ser escapados.
 - A exclusão deve ocorrer por POST com token CSRF, não por link GET.
 - Este projeto é educacional e ainda precisa de testes funcionais e de segurança antes de qualquer uso com dados reais.
-- A exportação CSV deve ser revisada para prevenir fórmulas maliciosas em campos exportados.
+- A exportação CSV neutraliza valores que poderiam ser interpretados como fórmulas por planilhas.
+- O cadastro valida os campos no servidor e exige token CSRF.
 
 ## Próximas melhorias
 
 - Adicionar script SQL versionado para criar o banco e a tabela.
-- Adicionar testes automatizados e instruções para executá-los.
+- Executar os testes automatizados com `php tests/test_csv.php` (requer PHP instalado).
+- O GitHub Actions verifica a sintaxe dos arquivos PHP e executa os testes CSV a cada push ou pull request.
 - Implementar autenticação e autorização antes de disponibilizar dados pessoais.
-- Revisar a exportação CSV e os fluxos de cadastro.
+- Ampliar os testes funcionais para cadastro, edição, listagem e exclusão com banco de dados de teste.
 - Registrar capturas de tela da aplicação em execução.
 
 ## Autor
