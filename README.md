@@ -20,64 +20,81 @@ Projeto de estudo para praticar páginas web em PHP para gerenciamento de regist
 
 ```text
 Teste_Cadastro_funcionarios/
-├── README.md
-├── .gitignore
-└── funcionarios/
-    ├── cadastrar.php
-    ├── cadastrar_form.php
-    ├── config.php
-    ├── editar.php
-    ├── excluir.php
-    ├── exportar_csv.php
-    ├── index.php
-    ├── listar.php
-    └── styles.css
+├── .github/workflows/php-ci.yml
+├── database/
+│   └── schema.sql
+├── funcionarios/
+│   ├── cadastrar.php
+│   ├── cadastrar_form.php
+│   ├── config.php
+│   ├── csv_utils.php
+│   ├── editar.php
+│   ├── excluir.php
+│   ├── exportar_csv.php
+│   ├── index.php
+│   ├── listar.php
+│   └── styles.css
+├── tests/
+│   └── test_csv.php
+└── README.md
 ```
 
 ## Requisitos
 
-- PHP com a extensão PDO MySQL habilitada
+- PHP 8.2 ou superior com a extensão PDO MySQL habilitada
 - MySQL ou MariaDB
-- Banco de dados `cadastro_funcionarios` e tabela `funcionarios` criados localmente
 
 ## Configuração local
 
-O arquivo `funcionarios/config.php` lê a configuração do banco de dados por variáveis de ambiente. Não armazene senhas no código nem no Git.
+1. Crie o banco e a tabela usando o script versionado na raiz do repositório:
 
-Configure estas variáveis no ambiente em que o PHP será executado:
+   ```bash
+   mysql -u root -p < database/schema.sql
+   ```
 
-- `DB_HOST`: host do banco (padrão: `127.0.0.1`)
-- `DB_PORT`: porta do banco (padrão: `3307`)
-- `DB_NAME`: nome do banco (padrão: `cadastro_funcionarios`)
-- `DB_USER`: usuário do banco (padrão: `root`)
-- `DB_PASS`: senha do usuário (padrão: vazia)
+   O script cria o banco `cadastro_funcionarios` e a tabela `funcionarios`. Execute-o em um ambiente local de desenvolvimento.
 
-Ajuste host, porta, usuário e senha de acordo com seu ambiente. O usuário do banco deve ter apenas as permissões necessárias para esta aplicação. Se sua senha já esteve publicada no repositório, troque-a: remover a senha do arquivo atual não a remove do histórico de commits.
+2. Configure as variáveis de ambiente usadas por `funcionarios/config.php`:
 
-Depois de criar e configurar o banco e a tabela esperada pelo projeto, inicie o servidor PHP na pasta `funcionarios`:
+   - `DB_HOST`: host do banco (padrão: `127.0.0.1`)
+   - `DB_PORT`: porta do banco (padrão: `3307`)
+   - `DB_NAME`: nome do banco (padrão: `cadastro_funcionarios`)
+   - `DB_USER`: usuário do banco (padrão: `root`)
+   - `DB_PASS`: senha do usuário (padrão: vazia)
+
+   Ajuste host, porta, usuário e senha ao seu ambiente. O usuário do banco deve ter apenas as permissões necessárias para esta aplicação. Se uma senha já esteve publicada no repositório, troque-a: removê-la do arquivo atual não a remove do histórico de commits.
+
+3. Inicie o servidor PHP a partir da pasta `funcionarios`:
+
+   ```bash
+   php -S 127.0.0.1:8000
+   ```
+
+4. Acesse [http://127.0.0.1:8000](http://127.0.0.1:8000) no navegador.
+
+## Testes automatizados
+
+O workflow do GitHub Actions verifica a sintaxe de todos os arquivos PHP e executa os testes unitários da proteção de fórmulas CSV em cada push ou pull request para `main`.
+
+Para executar o teste CSV localmente:
 
 ```bash
-php -S 127.0.0.1:8000
+php tests/test_csv.php
 ```
-
-Acesse `http://127.0.0.1:8000` no navegador. A criação do banco e da tabela ainda precisa corresponder às colunas utilizadas pelos scripts.
 
 ## Segurança e limitações
 
-- Consultas de busca e operações de escrita devem usar consultas preparadas.
-- Valores exibidos em HTML devem ser escapados.
-- A exclusão deve ocorrer por POST com token CSRF, não por link GET.
-- Este projeto é educacional e ainda precisa de testes funcionais e de segurança antes de qualquer uso com dados reais.
+- Consultas devem usar instruções preparadas e valores exibidos em HTML devem ser escapados.
+- A exclusão ocorre por POST com token CSRF, não por link GET.
+- O cadastro e a edição validam os campos no servidor e exigem token CSRF.
 - A exportação CSV neutraliza valores que poderiam ser interpretados como fórmulas por planilhas.
-- O cadastro valida os campos no servidor e exige token CSRF.
+- Este projeto é educacional e ainda precisa de testes de integração com MySQL e revisão de segurança antes de qualquer uso com dados reais.
+- Ainda não há autenticação nem autorização. Não publique esta aplicação com dados pessoais acessíveis publicamente.
 
 ## Próximas melhorias
 
-- Adicionar script SQL versionado para criar o banco e a tabela.
-- Executar os testes automatizados com `php tests/test_csv.php` (requer PHP instalado).
-- O GitHub Actions verifica a sintaxe dos arquivos PHP e executa os testes CSV a cada push ou pull request.
-- Implementar autenticação e autorização antes de disponibilizar dados pessoais.
-- Ampliar os testes funcionais para cadastro, edição, listagem e exclusão com banco de dados de teste.
+- Adicionar testes de integração para cadastro, edição, listagem e exclusão com banco de dados de teste.
+- Implementar autenticação e autorização.
 - Registrar capturas de tela da aplicação em execução.
 
 ## Autor
