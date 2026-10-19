@@ -1,6 +1,7 @@
 <?php
-session_start();
-require 'config.php';
+require_once __DIR__ . '/auth.php';
+exigirLogin();
+require_once __DIR__ . '/config.php';
 
 function escapar($valor): string
 {
