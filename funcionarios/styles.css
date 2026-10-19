@@ -102,3 +102,67 @@ a.button {
 a.button:hover {
     background-color: #003d7a;
 }
+
+
+.login-card {
+    width: min(100%, 420px);
+    margin: 8vh auto;
+    padding: 28px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
+}
+
+.login-card h1 {
+    margin-top: 0;
+}
+
+.login-card p {
+    line-height: 1.5;
+}
+
+.login-card label {
+    display: block;
+    margin-top: 14px;
+    font-weight: bold;
+}
+
+.login-card input[type="email"],
+.login-card input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0 12px;
+    box-sizing: border-box;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+}
+
+button {
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 4px;
+    background: #0056b3;
+    color: #fff;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #003d7a;
+}
+
+.error-message {
+    padding: 10px;
+    border-left: 4px solid #b42318;
+    background: #fff0ee;
+    color: #8a1c13;
+}
+
+.session-info {
+    text-align: center;
+}
+
+.logout-form {
+    text-align: center;
+}
